@@ -52,7 +52,7 @@ const createPackageJson = (dest) => {
     targetPkgJson['main'] = `${utils.getPackageName()}.umd.js`;
     targetPkgJson['module'] = `${utils.getPackageName()}.es5.js`;
     targetPkgJson['es2015'] = `${utils.getPackageName()}.js`;
-    targetPkgJson['typings'] = 'index.d.ts';
+    targetPkgJson['typings'] = `${utils.getPackageName()}.d.ts`;
 
     targetPkgJson.peerDependencies = utils.getPeerDependencies();
 
