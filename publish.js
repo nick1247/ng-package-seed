@@ -1,5 +1,5 @@
 const colors = require('colors');
-const exec = require('child_process').execSync;
+const exec = (cmd) => require('child_process').execSync(cmd, { stdio: 'inherit' });
 const copyfiles = require('copyfiles');
 const fs = require('fs');
 
