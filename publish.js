@@ -1,5 +1,6 @@
 const colors = require('colors');
-const exec = (cmd) => require('child_process').execSync(cmd, { stdio: 'inherit' });
+const execSync = require('child_process').execSync;
+const execWithParentIO = (cmd) => execSync(cmd, { stdio: 'inherit' });
 const copyfiles = require('copyfiles');
 const fs = require('fs');
 
@@ -10,36 +11,36 @@ const logStep = utils.logStep;
 
 const cleanDir = (dirName) => {
     logStep('cleanDir', 'cleaning ' + dirName + ' dir');
-    exec(`rm -rf ${dirName} && mkdir ${dirName}`);
+    execWithParentIO(`rm -rf ${dirName} && mkdir ${dirName}`);
 }
 
 const ngc = (tsconfig) => {
     logStep('ngc', 'compiling ' + tsconfig);
-    exec(`node node_modules/@angular/compiler-cli/src/main.js -p ${tsconfig}`);
+    execWithParentIO(`node node_modules/@angular/compiler-cli/src/main.js -p ${tsconfig}`);
 }
 
 const rollup = (rollupConfig) => {
     logStep('rollup', 'bundling ' + rollupConfig);
-    exec(`node node_modules/rollup/bin/rollup -c ${rollupConfig}`);
+    execWithParentIO(`node node_modules/rollup/bin/rollup -c ${rollupConfig}`);
 }
 
 const copyMetadata = (src, dest) => {
     logStep('copyMetadata', 'from ' + src + ' to ' + dest);
-    exec(`cp ${src}/${utils.getPackageName()}.metadata.json ${dest}/${utils.getPackageName()}.metadata.json`);
+    execWithParentIO(`cp ${src}/${utils.getPackageName()}.metadata.json ${dest}/${utils.getPackageName()}.metadata.json`);
 }
 
 const copyDeclarations = (src, dest) => {
     logStep('copyDeclarations', 'from ' + src + ' to ' + dest);
 
-    exec(`node node_modules/copyfiles/copyfiles ${src}/**/*.d.ts ${dest}/ -u 1`);
+    execWithParentIO(`node node_modules/copyfiles/copyfiles ${src}/**/*.d.ts ${dest}/ -u 1`);
 }
 
 const copyMaps = (src, dest) => {
     logStep('copyMaps', 'from ' + src + ' to ' + dest);
 
-    exec(`node node_modules/copyfiles/copyfiles ${src}/src/**/*.js.map ${dest}/ -u 1`);
+    execWithParentIO(`node node_modules/copyfiles/copyfiles ${src}/src/**/*.js.map ${dest}/ -u 1`);
     
-    exec(`cp ${src}/${utils.getPackageName()}.js.map ${dest}/${utils.getPackageName()}.js.map`);
+    execWithParentIO(`cp ${src}/${utils.getPackageName()}.js.map ${dest}/${utils.getPackageName()}.js.map`);
 }
 
 const createPackageJson = (dest) => {
@@ -67,7 +68,7 @@ const es2015 = () => {
 
     utils.createTsConfig('es2015');
     ngc('tsconfig.es2015.json');
-    exec('rm -f tsconfig.es2015.json');
+    execWithParentIO('rm -f tsconfig.es2015.json');
     rollup('rollup.config.es2015.js');
     copyMetadata(utils.paths.buildDir, utils.paths.distDir);
     copyDeclarations(utils.paths.buildDir, utils.paths.distDir);
@@ -81,9 +82,9 @@ const es5 = () => {
 
     utils.createTsConfig('es5');
     ngc('tsconfig.es5.json');
-    exec('rm -f tsconfig.es5.json');
+    execWithParentIO('rm -f tsconfig.es5.json');
     rollup('rollup.config.es5.js');
-    exec(`cp ${utils.paths.buildDir}/${utils.getPackageName()}.js.map ${utils.paths.distDir}/${utils.getPackageName()}.es5.js.map`);
+    execWithParentIO(`cp ${utils.paths.buildDir}/${utils.getPackageName()}.js.map ${utils.paths.distDir}/${utils.getPackageName()}.es5.js.map`);
     console.log();
 }
 
@@ -93,9 +94,9 @@ const umd = () => {
 
     utils.createTsConfig('es5');
     ngc('tsconfig.es5.json');
-    exec('rm -f tsconfig.es5.json');
+    execWithParentIO('rm -f tsconfig.es5.json');
     rollup('rollup.config.umd.js');
-    exec(`cp ${utils.paths.buildDir}/${utils.getPackageName()}.js.map ${utils.paths.distDir}/${utils.getPackageName()}.umd.js.map`);
+    execWithParentIO(`cp ${utils.paths.buildDir}/${utils.getPackageName()}.js.map ${utils.paths.distDir}/${utils.getPackageName()}.umd.js.map`);
     console.log();
 }
 
@@ -108,15 +109,15 @@ const build = () => {
 }
 
 const publish = () => {
-    let curVersion = exec(`npm show ${utils.getPackageName()} version`).toString().trim();
+    let curVersion = execSync(`npm show ${utils.getPackageName()} version`).toString().trim();
     if (curVersion == utils.getPackageVersion()) {
         log.error(`Version ${curVersion} already published`);
         return;
     }
 
-    exec('npm run tslint');
+    execWithParentIO('npm run tslint');
     build();
-    exec(`cd ${utils.paths.distDir} && npm publish`);
+    execWithParentIO(`cd ${utils.paths.distDir} && npm publish`);
 
     console.log();
     log.success(`Successfully published ${utils.getPackageName()} v${utils.getPackageVersion()}`);
